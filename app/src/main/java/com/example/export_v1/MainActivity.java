@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -32,6 +33,7 @@ public class MainActivity extends Activity implements OnClickListener {
     private static final String SAMPLE_DB_NAME = "TrekBook";
     private static final String SAMPLE_TABLE_NAME = "Info";
     String x;
+    SQLiteDatabase db;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,6 +42,7 @@ public class MainActivity extends Activity implements OnClickListener {
         findViewById(R.id.button1).setOnClickListener(this);
         findViewById(R.id.button2).setOnClickListener(this);
         findViewById(R.id.button3).setOnClickListener(this);
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -69,6 +72,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
     private void createDB() {
         SQLiteDatabase sampleDB = this.openOrCreateDatabase(SAMPLE_DB_NAME, MODE_PRIVATE, null);
+        db = this.openOrCreateDatabase("Database",MODE_PRIVATE,null);
         sampleDB.execSQL("CREATE TABLE IF NOT EXISTS " +
                 SAMPLE_TABLE_NAME +
                 " (LastName VARCHAR, FirstName VARCHAR," +
@@ -79,6 +83,8 @@ public class MainActivity extends Activity implements OnClickListener {
         sampleDB.close();
         sampleDB.getPath();
         x = sampleDB.getPath();
+        createPatientTable();
+        createNurseTable();
         Toast.makeText(this, "DB Created @ " + sampleDB.getPath(), Toast.LENGTH_LONG).show();
     }
 
@@ -213,25 +219,20 @@ public class MainActivity extends Activity implements OnClickListener {
             file = new File(ddfile,"csvname.csv");
             StringBuilder data = new StringBuilder();
             try {
-                SQLiteDatabase db = this.openOrCreateDatabase(SAMPLE_DB_NAME, MODE_PRIVATE, null);
-                Cursor curCSV = db.rawQuery("SELECT * FROM " + SAMPLE_TABLE_NAME, null);
-                /*
-                try {
-                    FileOutputStream stream = new FileOutputStream(file);
-                }
-                catch (FileNotFoundException e)
-                {
-                    Toast.makeText(this, "e1", Toast.LENGTH_LONG).show();
-                }
-                catch (IOException e)
-                {
-                    Toast.makeText(this, "e2", Toast.LENGTH_LONG).show();
-                }*/
+                SQLiteDatabase db = this.openOrCreateDatabase("Database", MODE_PRIVATE, null);
+                Cursor curCSV = db.rawQuery("SELECT * FROM " + "Nurse", null);
+
                 FileWriter stream = new FileWriter(file);
                 int i = 0;
                 while (curCSV.moveToNext()) {
-                    //Which column you want to exprort
+                    //Which column you want to export
                     data.append(curCSV.getString(0));
+                    data.append(";");
+                    data.append(curCSV.getString(1));
+                    data.append(";");
+                    data.append(curCSV.getString(2));
+                    data.append(";");
+                    data.append(curCSV.getString(3));
                     //data[i] = (curCSV.getString(0));
                     i++;
                 }
@@ -262,4 +263,56 @@ public class MainActivity extends Activity implements OnClickListener {
                 Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri);
         sendBroadcast(scanFileIntent);
     }
+
+    private void createNurseTable() {
+        String sql = "CREATE TABLE IF NOT EXISTS Nurse (nurse_id TEXT NOT NULL, nurse_name TEXT NOT NULL, nurse_password TEXT NOT NULL, nurse_authority INT NOT NULL, PRIMARY KEY(nurse_id))";
+        db.execSQL(sql);
+        ContentValues contentValues = new ContentValues(1);
+        Cursor cursor = db.rawQuery("SELECT * FROM Nurse", null);
+        if (!cursor.moveToFirst()) {
+            contentValues.put("nurse_id", "admin");
+            contentValues.put("nurse_name", "Admin");
+            contentValues.put("nurse_password", "admin");
+            contentValues.put("nurse_authority", 1);
+            db.insert("Nurse", null, contentValues);
+            contentValues.put("nurse_id", "admin1");
+            contentValues.put("nurse_name", "Admin1");
+            contentValues.put("nurse_password", "admin1");
+            contentValues.put("nurse_authority", 1);
+            db.insert("Nurse", null, contentValues);
+            contentValues.put("nurse_id", "admin2");
+            contentValues.put("nurse_name", "Admin2");
+            contentValues.put("nurse_password", "admin2");
+            contentValues.put("nurse_authority", 1);
+            db.insert("Nurse", null, contentValues);
+        }
+    }
+
+    private void createPatientTable() {
+        String sql = "CREATE TABLE IF NOT EXISTS Patient (patient_id TEXT NOT NULL, patient_name TEXT NOT NULL, patient_gender INT, patient_register DATE, patient_sign TEXT, patient_birth DATE , patient_incharge TEXT NOT NULL, PRIMARY KEY(patient_id), FOREIGN KEY(patient_incharge) REFERENCES Nurse(nurse_id) ON DELETE SET NULL ON UPDATE CASCADE)";
+        db.execSQL(sql);
+        db.execSQL("PRAGMA foreign_keys=ON;");
+        ContentValues contentValues = new ContentValues(1);
+        Cursor cursor = db.rawQuery("Select * From Patient",null);
+        if (!cursor.moveToFirst()) {
+            contentValues.put("patient_id", "p1");
+            contentValues.put("patient_name", "p21");
+            contentValues.put("patient_gender", "4");
+            contentValues.put("patient_incharge", "admin");
+            db.insert("Patient", null, contentValues);
+            contentValues.put("patient_id", "p2");
+            contentValues.put("patient_name", "p22");
+            contentValues.put("patient_gender", "4");
+            contentValues.put("patient_incharge", "admin1");
+            db.insert("Patient", null, contentValues);
+            contentValues.put("patient_id", "p3");
+            contentValues.put("patient_name", "p23");
+            contentValues.put("patient_gender", "4");
+            contentValues.put("patient_incharge", "admin3");
+            db.insert("Patient", null, contentValues);
+        }
+    }
+
+
+
 }
