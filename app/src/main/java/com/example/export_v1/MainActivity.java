@@ -88,8 +88,7 @@ public class MainActivity extends Activity implements OnClickListener {
         Toast.makeText(this, "DB Created @ " + sampleDB.getPath(), Toast.LENGTH_LONG).show();
     }
 
-    /*private static final String SAMPLE_DB_NAME = "TrekBook";
-    private static final String SAMPLE_TABLE_NAME = "Info";*/
+
    /* private void exportDB() throws IOException {
         String sd = Environment.getExternalStorageDirectory().getPath();
         File data = Environment.getDataDirectory();
@@ -208,6 +207,7 @@ public class MainActivity extends Activity implements OnClickListener {
     private void exportDB() {
 
         File file;
+
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(Environment.getExternalStorageState())) {
             File dir = getFilesDir();
 
@@ -216,36 +216,31 @@ public class MainActivity extends Activity implements OnClickListener {
             {
                 ddfile.mkdir();
             }
-            file = new File(ddfile,"csvname.csv");
+            file = new File(ddfile,"nurse.csv");
             StringBuilder data = new StringBuilder();
             try {
                 SQLiteDatabase db = this.openOrCreateDatabase("Database", MODE_PRIVATE, null);
-                Cursor curCSV = db.rawQuery("SELECT * FROM " + "Nurse", null);
+                Cursor curCSV = db.rawQuery("SELECT * FROM Nurse", null);
 
                 FileWriter stream = new FileWriter(file);
                 int i = 0;
                 while (curCSV.moveToNext()) {
                     //Which column you want to export
                     data.append(curCSV.getString(0));
-                    data.append(";");
+                    data.append(",");
                     data.append(curCSV.getString(1));
-                    data.append(";");
+                    data.append(",");
                     data.append(curCSV.getString(2));
-                    data.append(";");
+                    data.append(",");
                     data.append(curCSV.getString(3));
-                    //data[i] = (curCSV.getString(0));
+                    data.append(";");
                     i++;
                 }
 
                 stream.write(data.toString());
-                //stream.flush();
                 stream.close();
                 scanMedia(file.toString());
-                //MediaScannerConnection.scanFile(this, new String[] {file.getAbsolutePath()},new String[] (), null);
-
-                //curCSV.close();
                 Toast.makeText(this, "success", Toast.LENGTH_LONG).show();
-                //Toast.makeText(this, data.toString(), Toast.LENGTH_LONG).show();
             } catch (Exception sqlEx) {
                 Toast.makeText(this, "error", Toast.LENGTH_LONG).show();
             }
